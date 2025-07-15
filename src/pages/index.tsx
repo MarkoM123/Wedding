@@ -36,7 +36,7 @@ export default function HomePage() {
         </Link>
         <div className="space-x-4">
           <Link href="/room" className="text-blue-600 hover:underline">Soba</Link>
-          <Link href="/admin/login" className="text-blue-600 hover:underline">Admin</Link>
+          {/* Admin login link je uklonjen iz navigacije */}
         </div>
       </nav>
 
@@ -51,9 +51,7 @@ export default function HomePage() {
             <Link href="/room">
               <button className="bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700">Pristupi svojoj sobi</button>
             </Link>
-            <Link href="/admin/login">
-              <button className="border border-blue-600 text-blue-600 px-6 py-2 rounded-xl hover:bg-blue-50">Admin login</button>
-            </Link>
+            {/* Dugme za admin login uklonjeno */}
           </div>
         </motion.div>
       </section>
