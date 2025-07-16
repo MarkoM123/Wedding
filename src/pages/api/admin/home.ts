@@ -1,26 +1,28 @@
-// src/pages/api/admin/home.ts
 import { NextApiRequest, NextApiResponse } from 'next';
+import { PrismaClient } from '@prisma/client';
 
-// Dummy baza u memoriji (privremeno)
-let homeContent = {
-  heroImage: '/images/hero-phone.png',
-  description: 'Telefon za venčanja koji omogućava gostima da ostave poruke.',
-  steps: [
-    'Postavi telefon na mesto događaja',
-    'Gosti ostavljaju poruke',
-    'Preuzmi video snimke posle događaja',
-  ],
-  gallery: ['/images/gal1.jpg', '/images/gal2.jpg'],
-  seo: {
-    title: 'Telefon za venčanja',
-    description: 'Zabeleži glasovne poruke svojih gostiju na elegantan način.',
-    image: '/images/opengraph.png',
-  },
-};
+const prisma = new PrismaClient();
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    return res.status(200).json(homeContent);
+    const data = await prisma.homeContent.findUnique({ where: { id: 1 } });
+
+    if (!data) {
+      return res.status(404).json({ message: 'Home sadržaj nije pronađen' });
+    }
+
+    // Parsiraj JSON stringove
+    return res.status(200).json({
+      heroImage: data.heroImage,
+      description: data.description,
+      steps: JSON.parse(data.steps),
+      gallery: JSON.parse(data.gallery),
+      seo: {
+        title: data.seoTitle,
+        description: data.seoDesc,
+        image: data.seoImage,
+      },
+    });
   }
 
   if (req.method === 'PUT') {
@@ -30,8 +32,30 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ message: 'Neispravan unos' });
     }
 
-    homeContent = { heroImage, description, steps, gallery, seo };
-    return res.status(200).json({ message: 'Sadržaj uspešno ažuriran' });
+    const updated = await prisma.homeContent.upsert({
+      where: { id: 1 },
+      update: {
+        heroImage,
+        description,
+        steps: JSON.stringify(steps),
+        gallery: JSON.stringify(gallery),
+        seoTitle: seo.title,
+        seoDesc: seo.description,
+        seoImage: seo.image,
+      },
+      create: {
+        id: 1, // stalni ID da postoji samo jedan zapis
+        heroImage,
+        description,
+        steps: JSON.stringify(steps),
+        gallery: JSON.stringify(gallery),
+        seoTitle: seo.title,
+        seoDesc: seo.description,
+        seoImage: seo.image,
+      },
+    });
+
+    return res.status(200).json({ message: 'Sadržaj ažuriran', updated });
   }
 
   return res.status(405).json({ message: 'Metoda nije dozvoljena' });
