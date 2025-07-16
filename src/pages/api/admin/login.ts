@@ -1,42 +1,32 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import { generateToken } from '@/lib/auth';
+import { serialize } from 'cookie';
 
 const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || 'tajna_koja_se_cuva_u_.env';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Metoda nije dozvoljena' });
-  }
+  if (req.method !== 'POST') return res.status(405).end();
 
   const { email, password } = req.body;
+  const user = await prisma.user.findUnique({ where: { email } });
 
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Nedostaje email ili lozinka' });
+  if (!user || user.role !== 'admin') {
+    return res.status(401).json({ message: 'Ne postoji admin' });
   }
 
-  try {
-    const admin = await prisma.user.findUnique({ where: { email } });
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) return res.status(401).json({ message: 'Pogrešna lozinka' });
 
-    if (!admin || admin.role !== 'admin') {
-      return res.status(401).json({ message: 'Neautorizovan' });
-    }
+  const token = generateToken({ id: user.id, role: user.role });
 
-    const valid = await bcrypt.compare(password, admin.password);
-    if (!valid) {
-      return res.status(401).json({ message: 'Pogrešna lozinka' });
-    }
+  res.setHeader('Set-Cookie', serialize('token', token, {
+    httpOnly: true,
+    path: '/',
+    maxAge: 7 * 24 * 60 * 60,
+    sameSite: 'lax',
+  }));
 
-    const token = jwt.sign(
-      { id: admin.id, email: admin.email, role: admin.role },
-      JWT_SECRET,
-      { expiresIn: '8h' }
-    );
-
-    return res.status(200).json({ token });
-  } catch (err) {
-    return res.status(500).json({ message: 'Greška na serveru', error: err });
-  }
+  return res.status(200).json({ message: 'Uspesno' });
 }
