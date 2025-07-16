@@ -1,31 +1,27 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+type HomeContent = {
+  heroImage: string;
+  description: string;
+  steps: string[];
+  gallery: string[];
+  seo: {
+    title: string;
+    description: string;
+    image: string;
+  };
+};
 
 export default function HomePage() {
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
-  const [status, setStatus] = useState('');
+  const [content, setContent] = useState<HomeContent | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setStatus('Slanje...');
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      if (res.ok) {
-        setStatus('Poruka poslata!');
-        setFormData({ name: '', email: '', message: '' });
-      } else {
-        setStatus('Greška pri slanju.');
-      }
-    } catch {
-      setStatus('Greška pri slanju.');
-    }
-  };
+  useEffect(() => {
+    fetch('/api/admin/home')
+      .then(res => res.json())
+      .then(setContent)
+      .catch(() => setContent(null));
+  }, []);
+
 
   return (
     <main className="min-h-screen bg-white text-gray-800">
