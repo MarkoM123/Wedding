@@ -1,65 +1,68 @@
 /my-project
 │
-├── /public                      # Statički fajlovi (slike, favicon, uploadovani videi)
-│   └── /uploads                 # Uploadovani video fajlovi sa watermark-om
+├── /public                          # Statički fajlovi dostupni direktno (slike, favicon, snimci)
+│   ├── /uploads                     # Uploadovani videi sa watermark-om
+│   └── /gallery                     # Slike galerije za homepage
 │
-├── /src                         # Svi izvorišni fajlovi (frontend + backend)
-│   ├── /pages                   # Next.js stranice i API rute
-│   │    ├── /api                # API rute backend logike
-│   │    │    ├── /admin         # Admin API rute (login, logout, sobe, home content)
-│   │    │    │     ├── login.ts
-│   │    │    │     ├── logout.ts
-│   │    │    │     ├── rooms.ts       # GET, POST za sobe
-│   │    │    │     ├── rooms        # Dinamičke rute za PUT, DELETE sobe
-│   │    │    │     │    └── [id].ts
-│   │    │    │     ├── home.ts        # GET i PUT za home stranicu
-│   │    │    │
-│   │    │    ├── /user           # User API rute (login sobe)
-│   │    │    │     └── login.ts
-│   │    │    │
-│   │    │    ├── /upload         # Upload ruta (upload videa vezanog za sobu)
-│   │    │    │    └── [roomId].ts
-│   │    │    │
-│   │    │    ├── /rooms          # Dodatne sobe API rute, npr. za dobijanje videa
-│   │    │    │    └── [roomId]
-│   │    │    │          └── videos.ts
-│   │    │
-│   │    ├── /admin              # Admin frontend stranice
-│   │    │    ├── login.tsx
-│   │    │    ├── dashboard.tsx
-│   │    │    ├── rooms.tsx          # CRUD soba + upload snimaka
-│   │    │    └── home-edit.tsx      # Uređivanje home stranice (tekst, slike, galerija)
-│   │    │
-│   │    ├── /room               # Korisnička soba
-│   │    │    └── [code].tsx       # Prikaz šifre, videa, QR koda
-│   │    │
-│   │    └── index.tsx            # Home page
+├── /src
+│   ├── /pages                       # Next.js stranice + API rute
+│   │   ├── /api                    # Backend logika (admin + user + sobe + upload + home)
+│   │   │   ├── /admin
+│   │   │   │   ├── login.ts        # Admin login (JWT)
+│   │   │   │   ├── logout.ts       # Admin logout
+│   │   │   │   ├── rooms.ts        # GET, POST sobe (lista, kreiranje)
+│   │   │   │   ├── rooms
+│   │   │   │   │   └── [id].ts     # PUT, DELETE sobe
+│   │   │   │   ├── home.ts         # GET i PUT home sadržaja
+│   │   │   │
+│   │   │   ├── /user
+│   │   │   │   └── login.ts        # User login za sobe
+│   │   │   │
+│   │   │   ├── /upload
+│   │   │   │   └── [roomId].ts     # Upload videa za konkretnu sobu
+│   │   │   │
+│   │   │   ├── /rooms
+│   │   │   │   └── [roomId]
+│   │   │   │       └── videos.ts   # GET svi video fajlovi za sobu
 │   │
-│   ├── /components              # Reusable React komponente
-│   │    ├── Navbar.tsx
-│   │    ├── Footer.tsx
-│   │    ├── VideoPlayer.tsx
-│   │    ├── QRCodeDisplay.tsx
-│   │    ├── ContactForm.tsx
-│   │    └── LightboxGallery.tsx
-│   │
-│   ├── /lib                     # Helper funkcije, servisi, ffmpeg watermarking
-│   │    ├── watermark.ts
-│   │    ├── apiClient.ts
-│   │    ├── auth.ts
-│   │    └── cronJobs.ts          # Npr. za brisanje starih videa
-│   │
-│   ├── /hooks                   # Custom React hooks (useAuth, useRooms, itd.)
-│   ├── /context                 # React context provideri (AuthContext)
-│   ├── /styles                  # Tailwind CSS konfiguracija, globalni stilovi
-│   └── /utils                   # Utility funkcije (validacije, date format)
+│   │   ├── /admin                   # Frontend deo admin panela (samo preko admin subdomena)
+│   │   │   ├── login.tsx           # Admin login forma
+│   │   │   ├── dashboard.tsx       # Glavna admin stranica
+│   │   │   ├── rooms.tsx           # Lista i uređivanje soba
+│   │   │   └── home-edit.tsx       # Uređivanje homepage sadržaja
+│   │   │
+│   │   ├── /room                    # Soba korisnika (dinamička ruta)
+│   │   │   └── [code].tsx          # Prikaz poruka/snimaka za sobu
+│   │   │
+│   │   └── index.tsx               # Javna home stranica (fetchuje sadržaj preko API-ja)
 │
-├── /prisma                     # Prisma schema i migracije
-│    ├── schema.prisma
-│    └── migrations/
+│   ├── /components                 # Reusable React komponente
+│   │   ├── Navbar.tsx
+│   │   ├── Footer.tsx
+│   │   ├── VideoPlayer.tsx
+│   │   ├── QRCodeDisplay.tsx
+│   │   ├── ContactForm.tsx
+│   │   └── LightboxGallery.tsx
 │
-├── .env                        # Environment varijable (DB, email, tajni ključevi)
+│   ├── /lib                        # Logika, helperi
+│   │   ├── watermark.ts            # FFmpeg watermarking logika
+│   │   ├── apiClient.ts            # Axios instance
+│   │   ├── auth.ts                 # JWT token verify/generate
+│   │   └── cronJobs.ts             # Automatizacija (brisanje starih videa itd.)
+│
+│   ├── /hooks                      # Custom React hook-ovi (useAuth, useRooms, itd.)
+│   ├── /context                    # React context (npr. AuthContext)
+│   ├── /styles                     # Tailwind config, globalni CSS/SCSS fajlovi
+│   └── /utils                      # Validacija, obrada datuma, generalni utili
+│
+├── /prisma
+│   ├── schema.prisma               # Prisma šema (tabele: User, Room, Video, HomeContent...)
+│   └── /migrations                 # Prisma migracije baze
+│
+├── .env                            # Env varijable (JWT_SECRET, DB_URL, S3 ključevi, itd.)
+├── middleware.ts                   # Subdomen preusmeravanje (admin vs korisnički deo)
+├── next.config.js                  # Next.js konfiguracija
 ├── package.json
 ├── tsconfig.json
-├── next.config.js
 └── README.md
+
