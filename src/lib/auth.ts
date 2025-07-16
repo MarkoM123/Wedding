@@ -1,17 +1,18 @@
-// src/lib/auth.ts
 import jwt from 'jsonwebtoken';
 import { NextApiRequest } from 'next';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'tajna';
+const SECRET = process.env.JWT_SECRET || 'tajna';
 
-export function verifyToken(req: NextApiRequest) {
-  const authHeader = req.headers.authorization;
+export function generateToken(user: { id: number; role: string }) {
+  return jwt.sign({ id: user.id, role: user.role }, SECRET, { expiresIn: '7d' });
+}
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
-
-  const token = authHeader.split(' ')[1];
+export function verifyToken(req: NextApiRequest): null | { id: number; role: string } {
   try {
-    return jwt.verify(token, JWT_SECRET) as { id: number; role: string };
+    const token = req.cookies.token;
+    if (!token) return null;
+
+    return jwt.verify(token, SECRET) as { id: number; role: string };
   } catch {
     return null;
   }
